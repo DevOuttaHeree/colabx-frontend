@@ -1,0 +1,311 @@
+/* style.css - Light/Dark theme + responsive styles */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root{
+  --bg: #f6f8fb;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --primary: #108a00; /* Fiverr-like Primary Green */
+  --accent: #0c7a00;
+  --glass: rgba(255,255,255,0.8);
+  --text: #111827;
+  --radius: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.08);
+}
+
+/* dark theme variables */
+[data-theme="dark"]{
+  --bg: #0d1117;
+  --card: #161b22;
+  --muted: #9ca3af;
+  --primary: #38a169;
+  --accent: #2c7744;
+  --glass: rgba(13,17,23,0.8);
+  --text: #e6eef8;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+*{box-sizing: border-box}
+body{
+  margin:0;
+  font-family: "Inter", "Segoe UI", system-ui, Arial;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  min-height:100vh;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* Navbar */
+.nav{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 28px;
+  background: var(--card); /* Solid background for sticky nav */
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  position:sticky;
+  top:0;
+  z-index:50;
+  box-shadow: var(--shadow-sm);
+}
+.brand{
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+.logo {
+  width:36px;height:36px;border-radius:8px;
+  background:var(--primary);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;
+  font-size: 1.2rem;
+}
+.brand h3{margin:0;font-size:1.2rem;letter-spacing:0.2px}
+.nav-actions{display:flex;gap:10px;align-items:center}
+.top-right-btn{
+  background:var(--primary);
+  color:white; border:0; padding:8px 14px;border-radius:6px; cursor:pointer; font-weight:600;
+  text-decoration:none; display:inline-block; font-size:0.9rem;
+  transition: background 0.2s;
+}
+.top-right-btn:hover{ background:var(--accent) }
+
+/* hero / search */
+.hero{
+  max-width:1200px;
+  margin:40px auto 20px;
+  padding:0 22px;
+}
+.hero h1 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.hero p.tagline {
+  text-align: center;
+  color: var(--muted);
+  font-size: 1.1rem;
+  margin-bottom: 30px;
+}
+.notice {
+  background: #e6f4ff;
+  color: #024a78;
+  padding:10px 16px;border-radius:10px;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;font-size:0.95rem;
+}
+[data-theme="dark"] .notice{
+  background: rgba(56,161,105,0.1); color: var(--text);
+}
+
+/* search */
+.search-row {
+  display:flex;
+  gap:12px;
+  align-items:stretch; /* Align items to full height */
+  max-width: 800px;
+  margin: 0 auto;
+}
+.search-input{
+  flex:1;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  padding:8px 14px;
+  background:var(--card);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s;
+}
+.search-input:focus-within { box-shadow: 0 0 0 3px rgba(16, 138, 0, 0.2); }
+.search-input input, .search-input .location{
+  border:0; outline:none; font-size:1rem; background:transparent; color:var(--text); padding:4px 0;
+}
+.search-input .location { width: 150px; flex-shrink: 0; }
+.search-btn{
+  background:var(--primary);
+  color:white; border:0; padding:0 20px; border-radius:8px; cursor:pointer; font-weight:600;
+  font-size:1rem;
+  transition: background 0.2s;
+}
+.search-btn:hover{ background:var(--accent) }
+
+/* profiles grid */
+.container{
+  max-width:1200px;
+  margin: 20px auto 60px;
+  padding: 0 18px;
+}
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); /* Slightly larger cards */
+  gap:24px;
+  margin-top:24px;
+}
+
+/* card - Revamped for Fiverr/Indeed look */
+.card{
+  background: var(--card);
+  border-radius: var(--radius);
+  overflow:hidden;
+  border: 1px solid rgba(0,0,0,0.08);
+  transition: transform .25s ease, box-shadow .25s ease;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  position: relative; /* For the hover effect */
+  min-height: 250px; /* Ensure a minimum size */
+}
+.card:hover{
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card .top{
+  display:flex; flex-direction:column; align-items:center;
+  padding:20px 14px 10px;
+}
+.avatar{
+  width:90px; height:90px; border-radius:50%; object-fit:cover; background:#ddd; flex-shrink:0;
+  border:3px solid var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+.info{ text-align:center; margin-top:10px; }
+.info h4{ margin:0; font-size:1.15rem; }
+.info p{ margin:4px 0 0; font-size:0.9rem; color:var(--muted) }
+
+.skills{ padding:10px 14px 20px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.badge{ font-size:0.85rem; padding:6px 10px; border-radius:20px; background: rgba(16, 138, 0, 0.1); color:var(--primary); font-weight:600; }
+
+/* Hidden details on hover */
+.card .hidden-meta{
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-radius: var(--radius);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  text-align: center;
+}
+.card:hover .hidden-meta{ opacity: 1; }
+.card .hidden-meta p { margin: 8px 0; font-size: 1rem; }
+.card .hidden-meta .view-btn{
+  background: white;
+  color: var(--primary);
+  font-weight: 700;
+  margin-top: 15px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+}
+
+/* Footer area in card - now only for the View button if hover isn't working/preferred */
+.card .meta{ display:none; } /* Hide old footer, rely on hidden-meta for view button */
+
+/* Profile, Login, Register pages (Auth Container) */
+.auth-container, .profile-page {
+  max-width: 500px;
+  margin: 50px auto;
+  padding: 30px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+.auth-container h2 { margin-top: 0; }
+.auth-container form, .register-form {
+  display: grid;
+  gap: 12px;
+}
+.auth-container input, .auth-container button, .register-form input, .register-form button {
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+.auth-container input, .register-form input {
+  border: 1px solid rgba(0,0,0,0.1);
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color 0.2s;
+}
+.auth-container input:focus, .register-form input:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+.auth-container button, .register-form button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.auth-container button:hover, .register-form button:hover {
+  background: var(--accent);
+}
+#googleLogin {
+  background: #4285F4;
+  margin-top: 10px;
+}
+#googleLogin:hover {
+  background: #3c7ce7;
+}
+p.error { color: tomato; margin-top: 10px; }
+
+/* profile page */
+.profile-page{
+  max-width:900px;
+  margin:28px auto;
+  padding:20px;
+  text-align: left;
+}
+.profile-card{
+  display:flex; gap:30px; align-items:flex-start; background:var(--card); padding:25px;border-radius:12px; box-shadow: var(--shadow-md);
+}
+.profile-left{ width:200px; text-align:center; flex-shrink: 0; }
+
+/* FIX APPLIED HERE: Ensures the profile picture is a perfect circle */
+.profile-left .avatar-lg{
+  width:150px; /* Adjusted slightly for better circularity */
+  height:150px;
+  border-radius:50%;
+  object-fit:cover; /* Ensures image covers the area without stretching */
+  border: 4px solid var(--primary);
+}
+.profile-right{ flex:1 }
+.profile-right h2{ margin:0 0 8px; font-size: 1.8rem; }
+.edit-btn{ background:var(--primary); color:white; border:0; padding:10px 18px; border-radius:8px; cursor:pointer; transition: background 0.2s }
+.edit-btn:hover { background: var(--accent); }
+
+/* edit form */
+.edit-form{ margin-top:20px; display:grid; gap:12px; grid-template-columns: 1fr 1fr; }
+.edit-form input, .edit-form textarea{ padding:12px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); background:var(--bg); color:var(--text); }
+.col-span-2{ grid-column: 1 / -1; }
+
+/* small utilities */
+.top-right { display:flex; gap:10px; align-items:center; }
+.theme-toggle{ background:transparent; border:1px solid rgba(0,0,0,0.1); color:var(--text); padding:8px 10px; border-radius:8px; cursor:pointer }
+
+/* responsive */
+@media (max-width:900px){
+  .search-row { flex-direction: column; }
+  .search-btn { width: 100%; padding: 12px 20px; }
+  .search-input .location { width: auto; }
+}
+
+@media (max-width:780px){
+  .nav { padding: 14px 18px; }
+  .profile-card{ flex-direction:column; align-items:center }
+  .profile-left{ width:100% }
+  .profile-right { text-align: center; }
+  .profile-right p { text-align: center; }
+  .edit-form{ grid-template-columns: 1fr; }
+}

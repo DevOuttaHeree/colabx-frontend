@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CoLabX — Find Talent</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+  <script type="module" src="firebase-config.js"></script>
+
+  <div class="nav">
+    <div class="brand">
+      <div class="logo">Co</div>
+      <h3>CoLabX</h3>
+    </div>
+    <div class="nav-actions top-right">
+      <button class="theme-toggle" id="themeToggle">Toggle Theme</button>
+      <a class="top-right-btn" href="register.html">Register</a>
+      <a class="top-right-btn" href="login.html">Login</a>
+    </div>
+  </div>
+
+  <main class="hero container">
+    <h1>Find the Talent You Need, Instantly.</h1>
+    <p class="tagline">Explore top-rated freelancers and collaborators from around the world.</p>
+
+    <div class="notice">🔔 Notice: Verify identities before hiring. CoLabX is a demo platform.</div>
+
+    <div class="search-row">
+      <div class="search-input">
+        <svg width="20" height="20" viewBox="0 0 24 24" style="opacity:.6"><path fill="currentColor" d="M9.5 3a6.5 6.5 0 016.1 9.1l4.2 4.2-1.4 1.4-4.2-4.2A6.5 6.5 0 119.5 3zm0 2a4.5 4.5 0 100 9 4.5 4.5 0 000-9z"/></svg>
+        <input id="searchInput" placeholder="Search by Skills, Keywords, or Name" />
+        <div style="width:12px; height: 100%; border-left: 1px solid rgba(0,0,0,0.1);"></div>
+        <input class="location" id="locationInput" placeholder="City/Location" />
+      </div>
+      <button class="search-btn" id="searchBtn">Search</button>
+    </div>
+  </main>
+
+  <section class="container">
+    <div id="profilesGrid" class="grid"></div>
+  </section>
+
+  <script src="theme-toggle.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

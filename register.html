@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register - CoLabX</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="light">
+  
+  <div class="nav">
+    </div>
+
+  <section class="auth-container">
+    <h2>Create an account</h2>
+    <form id="registerForm">
+      <input type="text" id="name" placeholder="Full Name" required />
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      
+      <input type="text" id="city" placeholder="City" />
+      <input type="text" id="skills" placeholder="Skills (comma separated, e.g., HTML, CSS, JS)" />
+      <input type="number" id="experience" placeholder="Experience (yrs)" />
+      <input type="url" id="portfolio" placeholder="Portfolio URL (Optional)" />
+      <input type="file" id="profilePic" accept="image/*" />
+      
+      <button type="submit">Create Account</button>
+    </form>
+
+    <p style="color:var(--muted); margin: 15px 0;">— OR —</p>
+    <button id="googleLogin" style="background:#4285F4; margin-bottom: 20px; display: none;">Continue with Google</button> 
+
+    <p>Already registered? <a href="login.html" style="color:var(--primary); text-decoration: none; font-weight: 600;">Login</a></p>
+    <p id="errorMessage" class="error"></p>
+  </section>
+
+  <script src="theme-toggle.js"></script>
+  <script type="module" src="register.js"></script>
+</body>
+</html>
