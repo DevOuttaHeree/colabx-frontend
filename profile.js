@@ -1,7 +1,7 @@
 // profile.js - MONGODB/EXPRESS API VERSION READY FOR DEPLOYMENT
 
 // 🎯 IMPORTANT: REPLACE THIS PLACEHOLDER WITH YOUR LIVE BACKEND URL (e.g., https://your-app-name.onrender.com/api)
-const BACKEND_BASE_URL = 'https://your-render-app-name.onrender.com/api'; 
+const BACKEND_BASE_URL = 'https://colabx-api.onrender.com/api'; 
 // For local testing: const BACKEND_BASE_URL = 'http://localhost:3001/api'; 
 
 const profileImage = document.getElementById('profileImage');
