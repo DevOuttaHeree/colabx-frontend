@@ -1,8 +1,8 @@
 // app.js - MONGODB/EXPRESS API VERSION READY FOR DEPLOYMENT
+import { BACKEND_BASE_URL, checkPort } from './config.js';
 
-// 🎯 IMPORTANT: REPLACE THIS PLACEHOLDER WITH YOUR LIVE BACKEND URL (e.g., https://your-app-name.onrender.com/api)
-const BACKEND_BASE_URL = 'https://colabx-api.onrender.com/api'; 
-// For local testing: const BACKEND_BASE_URL = 'http://localhost:3001/api'; 
+// Log API connectivity info
+checkPort();
 
 // --- Registration Logic ---
 const reg_name = document.getElementById('reg_name');
@@ -58,15 +58,14 @@ if (reg_btn) {
 }
 
 // --- All Profiles Logic ---
-const profilesList = document.getElementById('profilesList');
+// NOTE: index.html uses id="profilesGrid". Ensure we target that element.
+const profilesGrid = document.getElementById('profilesGrid');
 
 async function fetchAllProfiles() {
-    if (!profilesList) return;
+    if (!profilesGrid) return;
 
     try {
-        // UPDATED FETCH URL
         const response = await fetch(`${BACKEND_BASE_URL}/profiles`);
-        
         if (!response.ok) {
             throw new Error('Failed to fetch profiles.');
         }
@@ -76,39 +75,49 @@ async function fetchAllProfiles() {
 
     } catch (error) {
         console.error("Error fetching profiles:", error);
-        profilesList.innerHTML = '<p class="text-danger">Failed to load profiles. Server error.</p>';
+        profilesGrid.innerHTML = '<p class="text-danger">Failed to load profiles. Server error.</p>';
     }
 }
 
 function renderProfiles(profiles) {
-    profilesList.innerHTML = '';
-    if (profiles.length === 0) {
-        profilesList.innerHTML = '<p>No users found yet.</p>';
+    profilesGrid.innerHTML = '';
+    if (!profiles || profiles.length === 0) {
+        profilesGrid.innerHTML = '<p>No users found yet.</p>';
         return;
     }
 
     profiles.forEach(profile => {
         const card = document.createElement('div');
-        card.className = 'col-md-4 mb-4';
+        card.className = 'card';
+
+        // Robust handling for skills: backend may return an array or a comma-separated string
+        const skillsArr = Array.isArray(profile.skills)
+            ? profile.skills
+            : (typeof profile.skills === 'string' ? profile.skills.split(',').map(s=>s.trim()).filter(Boolean) : []);
+
         card.innerHTML = `
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">${profile.name}</h5>
-                    <p class="card-text">
-                        <strong>Email:</strong> ${profile.email}<br>
-                        <strong>City:</strong> ${profile.city || 'N/A'}<br>
-                        <strong>Skills:</strong> ${(profile.skills || []).join(', ') || 'N/A'}<br>
-                        <strong>Exp:</strong> ${profile.experience || 0} yrs
-                    </p>
-                    <a href="profile.html?view=${profile.uid}" class="btn btn-sm btn-primary">View Profile</a>
+            <div class="top">
+                <img class="avatar" src="${profile.profilePic || 'default-profile.png'}" alt="${profile.name}">
+                <div class="info">
+                    <h4>${profile.name}</h4>
+                    <p>${profile.city || ''}</p>
                 </div>
             </div>
+            <div class="skills">
+                ${skillsArr.map(s=>`<span class="badge">${s}</span>`).join('')}
+            </div>
+            <div class="hidden-meta">
+                <p>${profile.email || ''}</p>
+                <p>${profile.experience || 0} yrs experience</p>
+                <a class="view-btn" href="profile.html?view=${profile.id || profile._id || profile.uid}">View Profile</a>
+            </div>
         `;
-        profilesList.appendChild(card);
+
+        profilesGrid.appendChild(card);
     });
 }
 
-// Check if the current page is index.html (where profilesList exists)
-if (document.getElementById('profilesList')) {
+// If we're on the index page with a profilesGrid element, fetch profiles
+if (profilesGrid) {
     fetchAllProfiles();
 }
