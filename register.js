@@ -1,6 +1,8 @@
 // register.js - MONGODB/EXPRESS API VERSION
+import { BACKEND_BASE_URL, checkPort } from './config.js';
 
-// ⚠️ DELETE ALL FIREBASE IMPORTS AND REFERENCES TO signInWithPopup ⚠️
+// Log API connectivity info
+checkPort();
 
 const nameInput = document.getElementById("name");
 const emailInput = document.getElementById("email");
@@ -37,7 +39,7 @@ registerForm.addEventListener("submit", async (e) => {
   errorMessage.textContent = "Registering...";
 
   try {
-    const response = await fetch('https://colabx-api.onrender.com/api/register', {
+    const response = await fetch(`${BACKEND_BASE_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)

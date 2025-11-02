@@ -1,8 +1,8 @@
 // profile.js - MONGODB/EXPRESS API VERSION READY FOR DEPLOYMENT
+import { BACKEND_BASE_URL, checkPort } from './config.js';
 
-// 🎯 IMPORTANT: REPLACE THIS PLACEHOLDER WITH YOUR LIVE BACKEND URL (e.g., https://your-app-name.onrender.com/api)
-const BACKEND_BASE_URL = 'https://colabx-api.onrender.com/api'; 
-// For local testing: const BACKEND_BASE_URL = 'http://localhost:3001/api'; 
+// Log API connectivity info
+checkPort();
 
 const profileImage = document.getElementById('profileImage');
 const profileName = document.getElementById('profileName');
@@ -33,14 +33,18 @@ function updateProfileUI(data) {
   profileName.textContent = data.name;
   profileEmail.textContent = data.email;
   profileCity.textContent = data.city;
-  profileSkills.textContent = (data.skills||[]).join(', ');
+    // Support both array and comma-separated string skill formats from the server
+    const skillsText = Array.isArray(data.skills)
+        ? data.skills.join(', ')
+        : (typeof data.skills === 'string' ? data.skills : '');
+    profileSkills.textContent = skillsText;
   profileExperience.textContent = data.experience || 0;
   profilePortfolio.textContent = data.portfolio || 'Portfolio';
   profilePortfolio.href = data.portfolio || '#';
 
-  e_name.value = data.name;
-  e_city.value = data.city;
-  e_skills.value = (data.skills||[]).join(', ');
+    e_name.value = data.name || '';
+    e_city.value = data.city || '';
+    e_skills.value = skillsText || '';
   e_exp.value = data.experience || 0;
   e_port.value = data.portfolio || '';
 }
