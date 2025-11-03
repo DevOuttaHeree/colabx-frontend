@@ -1,145 +1,123 @@
-// app.js - drop-in replacement (USE AS MODULE)
+// app.js - MONGODB/EXPRESS API VERSION READY FOR DEPLOYMENT
 import { BACKEND_BASE_URL, checkPort } from './config.js';
+
+// Log API connectivity info
 checkPort();
 
-// ----- Helpers & DOM refs -----
+// --- Registration Logic ---
+const reg_name = document.getElementById('reg_name');
+const reg_email = document.getElementById('reg_email');
+const reg_pass = document.getElementById('reg_pass');
+const reg_city = document.getElementById('reg_city');
+const reg_skills = document.getElementById('reg_skills');
+const reg_exp = document.getElementById('reg_exp');
+const reg_port = document.getElementById('reg_port');
+const reg_btn = document.getElementById('reg_btn');
+const reg_status = document.getElementById('reg_status');
+
+if (reg_btn) {
+    reg_btn.addEventListener('click', async () => {
+        const name = reg_name.value.trim();
+        const email = reg_email.value.trim();
+        const password = reg_pass.value;
+        const city = reg_city.value.trim();
+        const skills = reg_skills.value.trim();
+        const experience = reg_exp.value;
+        const portfolio = reg_port.value.trim();
+
+        if (!name || !email || !password) {
+            reg_status.textContent = "Name, email, and password are required.";
+            return;
+        }
+
+        reg_status.style.color = 'tomato';
+        reg_status.textContent = "Registering...";
+
+        try {
+            // UPDATED FETCH URL
+            const response = await fetch(`${BACKEND_BASE_URL}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password, city, skills, experience, portfolio })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Registration failed.');
+            }
+
+            reg_status.style.color = 'green';
+            reg_status.textContent = "Registration successful! You can now log in.";
+            
+        } catch (err) {
+            reg_status.style.color = 'red';
+            reg_status.textContent = err.message || 'Registration failed due to a server error.';
+        }
+    });
+}
+
+// --- All Profiles Logic ---
+// NOTE: index.html uses id="profilesGrid". Ensure we target that element.
 const profilesGrid = document.getElementById('profilesGrid');
-const debugOn = true;
 
-function log(...args) { if (debugOn) console.log('[app.js]', ...args); }
+async function fetchAllProfiles() {
+    if (!profilesGrid) return;
 
-if (!profilesGrid) log('⚠️ profilesGrid element NOT FOUND. Make sure your index.html has <div id="profilesGrid"></div>');
+    try {
+        const response = await fetch(`${BACKEND_BASE_URL}/profiles`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch profiles.');
+        }
 
-// ----- Render fn -----
+        const profiles = await response.json();
+        renderProfiles(profiles);
+
+    } catch (error) {
+        console.error("Error fetching profiles:", error);
+        profilesGrid.innerHTML = '<p class="text-danger">Failed to load profiles. Server error.</p>';
+    }
+}
+
 function renderProfiles(profiles) {
-  if (!profilesGrid) {
-    console.error('Cannot render profiles: profilesGrid element missing');
-    return;
-  }
-
-  profilesGrid.innerHTML = '';
-
-  if (!profiles || profiles.length === 0) {
-    profilesGrid.innerHTML = '<p>No users found matching your search criteria.</p>';
-    return;
-  }
-
-  profiles.forEach(profile => {
-    const card = document.createElement('div');
-    card.className = 'card';
-
-    // Normalize skills to array for safe rendering
-    const skillsArr = Array.isArray(profile.skills)
-      ? profile.skills
-      : (typeof profile.skills === 'string' ? profile.skills.split(',').map(s => s.trim()).filter(Boolean) : []);
-
-    // robust profile image fallback (absolute URL allowed)
-    const imgSrc = profile.profilePic && profile.profilePic.toString().trim() !== ''
-      ? profile.profilePic
-      : (profile.profilePic === '' ? 'assets/default-profile.png' : 'assets/default-profile.png');
-
-    card.innerHTML = `
-      <div class="top">
-        <img class="avatar" src="${imgSrc}" alt="${escapeHtml(profile.name || 'profile')}">
-        <div class="info">
-          <h4>${escapeHtml(profile.name || '')}</h4>
-          <p>${escapeHtml(profile.city || '')}</p>
-        </div>
-      </div>
-      <div class="skills">
-        ${skillsArr.map(s => `<span class="badge">${escapeHtml(s)}</span>`).join('')}
-      </div>
-      <div class="hidden-meta">
-        <p>${escapeHtml(profile.email || '')}</p>
-        <p>${escapeHtml(String(profile.experience || 0))} yrs experience</p>
-        <a class="view-btn" href="profile.html?view=${encodeURIComponent(profile.uid || '')}">View Profile</a>
-      </div>
-    `;
-
-    profilesGrid.appendChild(card);
-  });
-}
-
-// basic HTML escaper to avoid accidental markup injection
-function escapeHtml(str) {
-  return String(str || '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
-
-// ----- Fetch logic (exposed) -----
-export async function loadProfiles() {
-  if (!profilesGrid) {
-    log('Aborting loadProfiles(): profilesGrid missing from DOM');
-    return;
-  }
-
-  profilesGrid.innerHTML = '<p>Loading profiles...</p>';
-  const url = `${BACKEND_BASE_URL}/profiles`;
-  log('Attempting fetch ->', url);
-
-  try {
-    const resp = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' }});
-    log('Fetch response status:', resp.status);
-
-    if (!resp.ok) {
-      const text = await resp.text().catch(()=>null);
-      throw new Error(`Fetch failed: ${resp.status} ${resp.statusText} - ${text}`);
+    profilesGrid.innerHTML = '';
+    if (!profiles || profiles.length === 0) {
+        profilesGrid.innerHTML = '<p>No users found yet.</p>';
+        return;
     }
 
-    const data = await resp.json();
-    log('Fetched data (count):', Array.isArray(data) ? data.length : 'not-array', data);
-    renderProfiles(data);
+    profiles.forEach(profile => {
+        const card = document.createElement('div');
+        card.className = 'card';
 
-  } catch (err) {
-    console.error('Error fetching profiles:', err);
-    profilesGrid.innerHTML = `<p class="text-danger">Failed to load profiles: ${escapeHtml(err.message || 'unknown')}</p>`;
-  }
+        // Robust handling for skills: backend may return an array or a comma-separated string
+        const skillsArr = Array.isArray(profile.skills)
+            ? profile.skills
+            : (typeof profile.skills === 'string' ? profile.skills.split(',').map(s=>s.trim()).filter(Boolean) : []);
+
+        card.innerHTML = `
+            <div class="top">
+                <img class="avatar" src="${profile.profilePic || 'default-profile.png'}" alt="${profile.name}">
+                <div class="info">
+                    <h4>${profile.name}</h4>
+                    <p>${profile.city || ''}</p>
+                </div>
+            </div>
+            <div class="skills">
+                ${skillsArr.map(s=>`<span class="badge">${s}</span>`).join('')}
+            </div>
+            <div class="hidden-meta">
+                <p>${profile.email || ''}</p>
+                <p>${profile.experience || 0} yrs experience</p>
+                <a class="view-btn" href="profile.html?view=${profile.id || profile._id || profile.uid}">View Profile</a>
+            </div>
+        `;
+
+        profilesGrid.appendChild(card);
+    });
 }
 
-// Expose for manual console testing
-window._colabx = window._colabx || {};
-window._colabx.loadProfiles = loadProfiles;
-window._colabx.BACKEND_BASE_URL = BACKEND_BASE_URL;
-
-// ----- Search wrapper (keeps your behavior) -----
-export async function performSearch(query, location) {
-  if (!profilesGrid) return;
-  let url = `${BACKEND_BASE_URL}/search?`;
-  if (query) url += `query=${encodeURIComponent(query)}&`;
-  if (location) url += `location=${encodeURIComponent(location)}&`;
-  url = url.endsWith('&') ? url.slice(0,-1) : url;
-
-  if (!query && !location) {
-    return loadProfiles();
-  }
-
-  profilesGrid.innerHTML = '<p>Searching...</p>';
-  log('Search URL ->', url);
-
-  try {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    renderProfiles(data);
-  } catch (err) {
-    console.error('Search failed:', err);
-    profilesGrid.innerHTML = '<p class="text-danger">Search failed. Try again.</p>';
-  }
+// If we're on the index page with a profilesGrid element, fetch profiles
+if (profilesGrid) {
+    fetchAllProfiles();
 }
-
-// ----- Auto-init on DOM ready (safe guard) -----
-document.addEventListener('DOMContentLoaded', () => {
-  // Delay to ensure DOM elements are present (very small)
-  setTimeout(() => {
-    if (profilesGrid) {
-      log('DOM loaded — calling loadProfiles() automatically');
-      loadProfiles();
-    } else {
-      log('DOM loaded but profilesGrid missing — not auto-loading');
-    }
-  }, 50);
-});
