@@ -1,171 +1,145 @@
-// app.js - MONGODB/EXPRESS API VERSION READY FOR DEPLOYMENT
+// app.js - drop-in replacement (USE AS MODULE)
 import { BACKEND_BASE_URL, checkPort } from './config.js';
-
-// Log API connectivity info
 checkPort();
 
-// ---------------------------- REGISTRATION LOGIC ----------------------------
-const reg_name = document.getElementById('reg_name');
-const reg_email = document.getElementById('reg_email');
-const reg_pass = document.getElementById('reg_pass');
-const reg_city = document.getElementById('reg_city');
-const reg_skills = document.getElementById('reg_skills');
-const reg_exp = document.getElementById('reg_exp');
-const reg_port = document.getElementById('reg_port');
-const reg_btn = document.getElementById('reg_btn');
-const reg_status = document.getElementById('reg_status');
-
-if (reg_btn) {
-    reg_btn.addEventListener('click', async () => {
-        const name = reg_name.value.trim();
-        const email = reg_email.value.trim();
-        const password = reg_pass.value;
-        const city = reg_city.value.trim();
-        const skills = reg_skills.value.trim();
-        const experience = reg_exp.value;
-        const portfolio = reg_port.value.trim();
-
-        if (!name || !email || !password) {
-            reg_status.textContent = "Name, email, and password are required.";
-            return;
-        }
-
-        reg_status.style.color = 'tomato';
-        reg_status.textContent = "Registering...";
-
-        try {
-            const response = await fetch(`${BACKEND_BASE_URL}/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password, city, skills, experience, portfolio })
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) throw new Error(result.message || 'Registration failed.');
-
-            reg_status.style.color = 'green';
-            reg_status.textContent = "✅ Registration successful! You can now log in.";
-            
-        } catch (err) {
-            reg_status.style.color = 'red';
-            reg_status.textContent = err.message || 'Server error.';
-        }
-    });
-}
-
-// ---------------------------- PROFILE RENDERING ----------------------------
+// ----- Helpers & DOM refs -----
 const profilesGrid = document.getElementById('profilesGrid');
+const debugOn = true;
 
+function log(...args) { if (debugOn) console.log('[app.js]', ...args); }
+
+if (!profilesGrid) log('⚠️ profilesGrid element NOT FOUND. Make sure your index.html has <div id="profilesGrid"></div>');
+
+// ----- Render fn -----
 function renderProfiles(profiles) {
-    profilesGrid.innerHTML = '';
+  if (!profilesGrid) {
+    console.error('Cannot render profiles: profilesGrid element missing');
+    return;
+  }
 
-    if (!profiles || profiles.length === 0) {
-        profilesGrid.innerHTML = '<p>No users found matching your search criteria.</p>';
-        return;
-    }
+  profilesGrid.innerHTML = '';
 
-    profiles.forEach(profile => {
-        const card = document.createElement('div');
-        card.className = 'card';
+  if (!profiles || profiles.length === 0) {
+    profilesGrid.innerHTML = '<p>No users found matching your search criteria.</p>';
+    return;
+  }
 
-        const skillsArr = Array.isArray(profile.skills)
-            ? profile.skills
-            : (typeof profile.skills === 'string' ? profile.skills.split(',').map(s=>s.trim()) : []);
+  profiles.forEach(profile => {
+    const card = document.createElement('div');
+    card.className = 'card';
 
-        const imgSrc = profile.profilePic && profile.profilePic.trim() !== ""
-            ? profile.profilePic
-            : "assets/default-profile.png";
+    // Normalize skills to array for safe rendering
+    const skillsArr = Array.isArray(profile.skills)
+      ? profile.skills
+      : (typeof profile.skills === 'string' ? profile.skills.split(',').map(s => s.trim()).filter(Boolean) : []);
 
-        card.innerHTML = `
-            <div class="top">
-                <img class="avatar" src="${imgSrc}" alt="${profile.name}">
-                <div class="info">
-                    <h4>${profile.name}</h4>
-                    <p>${profile.city || ''}</p>
-                </div>
-            </div>
-            <div class="skills">
-                ${skillsArr.map(s=>`<span class="badge">${s}</span>`).join('')}
-            </div>
-            <div class="hidden-meta">
-                <p>${profile.email || ''}</p>
-                <p>${profile.experience || 0} yrs experience</p>
-                <a class="view-btn" href="profile.html?view=${profile.uid}">View Profile</a>
-            </div>
-        `;
+    // robust profile image fallback (absolute URL allowed)
+    const imgSrc = profile.profilePic && profile.profilePic.toString().trim() !== ''
+      ? profile.profilePic
+      : (profile.profilePic === '' ? 'assets/default-profile.png' : 'assets/default-profile.png');
 
-        profilesGrid.appendChild(card);
-    });
+    card.innerHTML = `
+      <div class="top">
+        <img class="avatar" src="${imgSrc}" alt="${escapeHtml(profile.name || 'profile')}">
+        <div class="info">
+          <h4>${escapeHtml(profile.name || '')}</h4>
+          <p>${escapeHtml(profile.city || '')}</p>
+        </div>
+      </div>
+      <div class="skills">
+        ${skillsArr.map(s => `<span class="badge">${escapeHtml(s)}</span>`).join('')}
+      </div>
+      <div class="hidden-meta">
+        <p>${escapeHtml(profile.email || '')}</p>
+        <p>${escapeHtml(String(profile.experience || 0))} yrs experience</p>
+        <a class="view-btn" href="profile.html?view=${encodeURIComponent(profile.uid || '')}">View Profile</a>
+      </div>
+    `;
+
+    profilesGrid.appendChild(card);
+  });
 }
 
-// ---------------------------- FETCH ALL PROFILES ----------------------------
-async function fetchAllProfiles() {
-    if (!profilesGrid) return;
-
-    try {
-        const res = await fetch(`${BACKEND_BASE_URL}/profiles`);
-        const data = await res.json();
-
-        console.log("✅ Loaded profiles:", data);
-        renderProfiles(data);
-
-    } catch (err) {
-        console.error("❌ Error loading profiles:", err);
-        profilesGrid.innerHTML = '<p class="text-danger">Failed to load profiles.</p>';
-    }
+// basic HTML escaper to avoid accidental markup injection
+function escapeHtml(str) {
+  return String(str || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 }
 
-// ---------------------------- SEARCH ----------------------------
-async function performSearch(query, location) {
-    if (!profilesGrid) return;
+// ----- Fetch logic (exposed) -----
+export async function loadProfiles() {
+  if (!profilesGrid) {
+    log('Aborting loadProfiles(): profilesGrid missing from DOM');
+    return;
+  }
 
-    let url = `${BACKEND_BASE_URL}/search?`;
-    if (query) url += `query=${encodeURIComponent(query)}&`;
-    if (location) url += `location=${encodeURIComponent(location)}&`;
-    url = url.endsWith('&') ? url.slice(0, -1) : url;
+  profilesGrid.innerHTML = '<p>Loading profiles...</p>';
+  const url = `${BACKEND_BASE_URL}/profiles`;
+  log('Attempting fetch ->', url);
 
-    if (!query && !location) {
-        fetchAllProfiles();
-        return;
+  try {
+    const resp = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' }});
+    log('Fetch response status:', resp.status);
+
+    if (!resp.ok) {
+      const text = await resp.text().catch(()=>null);
+      throw new Error(`Fetch failed: ${resp.status} ${resp.statusText} - ${text}`);
     }
 
-    profilesGrid.innerHTML = '<p>Searching...</p>';
+    const data = await resp.json();
+    log('Fetched data (count):', Array.isArray(data) ? data.length : 'not-array', data);
+    renderProfiles(data);
 
-    try {
-        const res = await fetch(url);
-        const data = await res.json();
-        renderProfiles(data);
-
-    } catch (error) {
-        console.error('Search error:', error);
-        profilesGrid.innerHTML = '<p class="text-danger">Search failed.</p>';
-    }
+  } catch (err) {
+    console.error('Error fetching profiles:', err);
+    profilesGrid.innerHTML = `<p class="text-danger">Failed to load profiles: ${escapeHtml(err.message || 'unknown')}</p>`;
+  }
 }
 
-// ---------------------------- INITIAL LOAD & EVENT LISTENERS ----------------------------
+// Expose for manual console testing
+window._colabx = window._colabx || {};
+window._colabx.loadProfiles = loadProfiles;
+window._colabx.BACKEND_BASE_URL = BACKEND_BASE_URL;
+
+// ----- Search wrapper (keeps your behavior) -----
+export async function performSearch(query, location) {
+  if (!profilesGrid) return;
+  let url = `${BACKEND_BASE_URL}/search?`;
+  if (query) url += `query=${encodeURIComponent(query)}&`;
+  if (location) url += `location=${encodeURIComponent(location)}&`;
+  url = url.endsWith('&') ? url.slice(0,-1) : url;
+
+  if (!query && !location) {
+    return loadProfiles();
+  }
+
+  profilesGrid.innerHTML = '<p>Searching...</p>';
+  log('Search URL ->', url);
+
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    renderProfiles(data);
+  } catch (err) {
+    console.error('Search failed:', err);
+    profilesGrid.innerHTML = '<p class="text-danger">Search failed. Try again.</p>';
+  }
+}
+
+// ----- Auto-init on DOM ready (safe guard) -----
 document.addEventListener('DOMContentLoaded', () => {
-    const searchButton = document.getElementById('searchBtn');
-    const searchInput = document.getElementById('searchInput');
-    const locationInput = document.getElementById('locationInput');
-
+  // Delay to ensure DOM elements are present (very small)
+  setTimeout(() => {
     if (profilesGrid) {
-        fetchAllProfiles(); 
+      log('DOM loaded — calling loadProfiles() automatically');
+      loadProfiles();
+    } else {
+      log('DOM loaded but profilesGrid missing — not auto-loading');
     }
-
-    if (searchButton && searchInput && locationInput) {
-        const triggerSearch = () => {
-            performSearch(searchInput.value, locationInput.value);
-        };
-
-        searchButton.addEventListener('click', triggerSearch);
-
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); triggerSearch(); }
-        });
-
-        locationInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); triggerSearch(); }
-        });
-    }
+  }, 50);
 });
