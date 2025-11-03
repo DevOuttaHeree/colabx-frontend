@@ -4,9 +4,7 @@ import { BACKEND_BASE_URL, checkPort } from './config.js';
 // Log API connectivity info
 checkPort();
 
-// --- Registration Logic ---
-// ... (Your existing registration logic remains the same) ...
-
+// ---------------------------- REGISTRATION LOGIC ----------------------------
 const reg_name = document.getElementById('reg_name');
 const reg_email = document.getElementById('reg_email');
 const reg_pass = document.getElementById('reg_pass');
@@ -44,25 +42,24 @@ if (reg_btn) {
 
             const result = await response.json();
 
-            if (!response.ok) {
-                throw new Error(result.message || 'Registration failed.');
-            }
+            if (!response.ok) throw new Error(result.message || 'Registration failed.');
 
             reg_status.style.color = 'green';
-            reg_status.textContent = "Registration successful! You can now log in.";
+            reg_status.textContent = "✅ Registration successful! You can now log in.";
             
         } catch (err) {
             reg_status.style.color = 'red';
-            reg_status.textContent = err.message || 'Registration failed due to a server error.';
+            reg_status.textContent = err.message || 'Server error.';
         }
     });
 }
 
-// --- Profile Rendering Logic (Used by both fetchAllProfiles and performSearch) ---
+// ---------------------------- PROFILE RENDERING ----------------------------
 const profilesGrid = document.getElementById('profilesGrid');
 
 function renderProfiles(profiles) {
     profilesGrid.innerHTML = '';
+
     if (!profiles || profiles.length === 0) {
         profilesGrid.innerHTML = '<p>No users found matching your search criteria.</p>';
         return;
@@ -74,11 +71,15 @@ function renderProfiles(profiles) {
 
         const skillsArr = Array.isArray(profile.skills)
             ? profile.skills
-            : (typeof profile.skills === 'string' ? profile.skills.split(',').map(s=>s.trim()).filter(Boolean) : []);
+            : (typeof profile.skills === 'string' ? profile.skills.split(',').map(s=>s.trim()) : []);
+
+        const imgSrc = profile.profilePic && profile.profilePic.trim() !== ""
+            ? profile.profilePic
+            : "assets/default-profile.png";
 
         card.innerHTML = `
             <div class="top">
-                <img class="avatar" src="${profile.profilePic || 'default-profile.png'}" alt="${profile.name}">
+                <img class="avatar" src="${imgSrc}" alt="${profile.name}">
                 <div class="info">
                     <h4>${profile.name}</h4>
                     <p>${profile.city || ''}</p>
@@ -98,39 +99,32 @@ function renderProfiles(profiles) {
     });
 }
 
-
-// --- All Profiles Fetch Logic ---
+// ---------------------------- FETCH ALL PROFILES ----------------------------
 async function fetchAllProfiles() {
     if (!profilesGrid) return;
 
     try {
-        const response = await fetch(`${BACKEND_BASE_URL}/profiles`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch profiles.');
-        }
+        const res = await fetch(`${BACKEND_BASE_URL}/profiles`);
+        const data = await res.json();
 
-        const profiles = await response.json();
-        renderProfiles(profiles);
+        console.log("✅ Loaded profiles:", data);
+        renderProfiles(data);
 
-    } catch (error) {
-        console.error("Error fetching profiles:", error);
-        profilesGrid.innerHTML = '<p class="text-danger">Failed to load profiles. Check server connection.</p>';
+    } catch (err) {
+        console.error("❌ Error loading profiles:", err);
+        profilesGrid.innerHTML = '<p class="text-danger">Failed to load profiles.</p>';
     }
 }
 
-// --- 🚀 NEW SEARCH LOGIC ---
+// ---------------------------- SEARCH ----------------------------
 async function performSearch(query, location) {
     if (!profilesGrid) return;
-    
-    // Build query string
+
     let url = `${BACKEND_BASE_URL}/search?`;
     if (query) url += `query=${encodeURIComponent(query)}&`;
     if (location) url += `location=${encodeURIComponent(location)}&`;
-
-    // Remove trailing & if one was added
     url = url.endsWith('&') ? url.slice(0, -1) : url;
 
-    // If both are empty, load all profiles
     if (!query && !location) {
         fetchAllProfiles();
         return;
@@ -139,62 +133,39 @@ async function performSearch(query, location) {
     profilesGrid.innerHTML = '<p>Searching...</p>';
 
     try {
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const profiles = await response.json();
-        renderProfiles(profiles); // Use the existing render function
+        const res = await fetch(url);
+        const data = await res.json();
+        renderProfiles(data);
 
     } catch (error) {
-        console.error('Error during search:', error);
-        profilesGrid.innerHTML = '<p class="text-danger">Error executing search. Try again.</p>';
+        console.error('Search error:', error);
+        profilesGrid.innerHTML = '<p class="text-danger">Search failed.</p>';
     }
 }
 
-
-// --- Event Listeners and Initial Load ---
+// ---------------------------- INITIAL LOAD & EVENT LISTENERS ----------------------------
 document.addEventListener('DOMContentLoaded', () => {
-    // Initial load of profiles if on the index page
-    if (profilesGrid && !document.getElementById('searchInput')) { 
-        fetchAllProfiles(); // Only fetch if we're on the main page without search elements (e.g., login/reg pages)
-    }
-
-    // Attach event listeners for the search functionality
     const searchButton = document.getElementById('searchBtn');
     const searchInput = document.getElementById('searchInput');
     const locationInput = document.getElementById('locationInput');
 
-    if (searchButton && searchInput && locationInput) {
-        // Function to run search on click or enter
-        const triggerSearch = () => {
-            const query = searchInput.value;
-            const location = locationInput.value;
-            performSearch(query, location);
-        };
-        
-        // 1. Handle button click
-        searchButton.addEventListener('click', triggerSearch);
-
-        // 2. Handle 'Enter' key press in either input field
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                triggerSearch();
-            }
-        });
-        locationInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                triggerSearch();
-            }
-        });
+    if (profilesGrid) {
+        fetchAllProfiles(); 
     }
 
-    // If we're on the index page with a profilesGrid element, fetch profiles on load
-    if (profilesGrid) {
-        fetchAllProfiles();
+    if (searchButton && searchInput && locationInput) {
+        const triggerSearch = () => {
+            performSearch(searchInput.value, locationInput.value);
+        };
+
+        searchButton.addEventListener('click', triggerSearch);
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); triggerSearch(); }
+        });
+
+        locationInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); triggerSearch(); }
+        });
     }
 });
