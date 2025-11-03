@@ -1,9 +1,8 @@
-// config.js - Central configuration for the frontend app
-export const BACKEND_BASE_URL = 'https://colabx-api-1.onrender.com/api';
+// ✅ Backend URL deployed on Render
+export const BACKEND_BASE_URL = "https://colabx-api-1.onrender.com/api";
 
-// Helper function to log API connectivity info
+// ✅ Debug helper
 export function checkPort() {
-    console.log(`Frontend URL: ${window.location.origin}`);
-    console.log(`Backend URL: ${BACKEND_BASE_URL}`);
-
+  console.log("Frontend Origin:", window.location.origin);
+  console.log("Backend URL:", BACKEND_BASE_URL);
 }
